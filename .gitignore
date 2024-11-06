@@ -1,2 +1,4 @@
 /build
+ChessEngine
 *.exe
+.DS_Store
