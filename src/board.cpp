@@ -1,9 +1,7 @@
-#pragma once /* BOARD_HPP */
-
 #include "../include/board.hpp"
 
 Board::Board(void)
-  : m_Board(std::move(std::vector<char>(64))), m_PeicesTextures(std::move(std::vector<Rectangle>(12))), m_Peices(std::move(std::vector<std::pair<char, char>>(24)))
+  : m_Board(std::move(std::vector<char>(64))), m_PeicesTextures(std::move(std::vector<Rectangle>(12))), m_Peices(std::move(std::vector<Peice>(24)))
 {
   // Load the different peice textures
   m_TextureAtlas = LoadTexture("assets/textures/chessPeices.png");
@@ -21,7 +19,8 @@ Board::Board(void)
   m_PeicesTextures[BLACK_KING]   = { 0, m_PeiceWidth, m_PeiceWidth, m_PeiceWidth };
 
   // Setup the board with the starting position
-  m_Peices = GeneratePeicesFromFen("rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR");
+  const std::string fen = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR";
+  m_Peices = GeneratePeicesFromFen(fen);
 }
 
 // Destructor to unload any and all resources
@@ -33,6 +32,8 @@ Board::~Board(void)
 // Will draw the board, the peices, and allow the user and computer to move the peices
 void Board::UpdateAndRender(Vector2 boardPosition) noexcept
 {
+  mousePressed = false;
+  
   float peiceScale = m_SquareWidth/m_PeiceWidth;
 
   // Draw board
@@ -53,19 +54,19 @@ void Board::UpdateAndRender(Vector2 boardPosition) noexcept
   // Draw peices
   for (char i = 0; i < m_Peices.size(); i++)
   {
-    std::pair<char, char> peice = m_Peices[i];
-    
-    char rank = peice.second/8;
-    char file = peice.second%8;
+    Peice& peice = m_Peices[i];
+
+    char rank = peice.boardIndex/8;
+    char file = peice.boardIndex%8;
 
     Rectangle dest = { boardPosition.x+(file*m_SquareWidth), boardPosition.y+(rank*m_SquareWidth), m_PeiceWidth*peiceScale, m_PeiceWidth*peiceScale };
-    DrawTexturePro(m_TextureAtlas, m_PeicesTextures[peice.first], dest, { 0, 0 }, 0.0f, WHITE);
+    DrawTexturePro(m_TextureAtlas, m_PeicesTextures[peice.type], dest, { 0, 0 }, 0.0f, WHITE);
   }
 }
 
-std::vector<std::pair<char, char>> Board::GeneratePeicesFromFen(const std::string_view fen) noexcept
+std::vector<Peice> Board::GeneratePeicesFromFen(const std::string& fen) noexcept
 {
-  std::vector<std::pair<char, char>> peices;
+  std::vector<Peice> peices;
 
   char rank = 0;
   char file = 0;
@@ -91,22 +92,22 @@ std::vector<std::pair<char, char>> Board::GeneratePeicesFromFen(const std::strin
       switch (c)
       {
         case 'P':
-          peices.push_back(std::pair<char, char>(WHITE_PAWN, position));
+          peices.push_back({ WHITE_PAWN, position, false });
           break;
         case 'B':
-          peices.push_back(std::pair<char, char>(WHITE_BISHOP, position));
+          peices.push_back({ WHITE_BISHOP, position, false });
           break;
         case 'N':
-          peices.push_back(std::pair<char, char>(WHITE_KNIGHT, position));
+          peices.push_back({ WHITE_KNIGHT, position, false });
           break;
         case 'R':
-          peices.push_back(std::pair<char, char>(WHITE_ROOK, position));
+          peices.push_back({ WHITE_ROOK, position, false });
           break;
         case 'Q':
-          peices.push_back(std::pair<char, char>(WHITE_QUEEN, position));
+          peices.push_back({ WHITE_QUEEN, position, false });
           break;
         case 'K':
-          peices.push_back(std::pair<char, char>(WHITE_KING, position));
+          peices.push_back({ WHITE_KING, position, false });
           break;
       }
     }
@@ -115,22 +116,22 @@ std::vector<std::pair<char, char>> Board::GeneratePeicesFromFen(const std::strin
       switch (c)
       {
         case 'p':
-          peices.push_back(std::pair<char, char>(BLACK_PAWN, position));
+          peices.push_back({ BLACK_PAWN, position, false });
           break;
         case 'b':
-          peices.push_back(std::pair<char, char>(BLACK_BISHOP, position));
+          peices.push_back({ BLACK_BISHOP, position, false });
           break;
         case 'n':
-          peices.push_back(std::pair<char, char>(BLACK_KNIGHT, position));
+          peices.push_back({ BLACK_KNIGHT, position, false });
           break;
         case 'r':
-          peices.push_back(std::pair<char, char>(BLACK_ROOK, position));
+          peices.push_back({ BLACK_ROOK, position, false });
           break;
         case 'q':
-          peices.push_back(std::pair<char, char>(BLACK_QUEEN, position));
+          peices.push_back({ BLACK_QUEEN, position, false });
           break;
         case 'k':
-          peices.push_back(std::pair<char, char>(BLACK_KING, position));
+          peices.push_back({ BLACK_KING, position, false });
           break;
       }
     }

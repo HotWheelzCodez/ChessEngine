@@ -1,5 +1,8 @@
+#pragma once /* BOARD_HPP */
+
 #include <iostream>
 #include <vector>
+#include <string>
 
 #include "raylib.h"
 
@@ -19,6 +22,16 @@ enum Peices
   BLACK_KING
 };
 
+typedef struct Peice
+{
+  char type;
+  char boardIndex;
+  bool selected;
+  bool moved;
+} Peice;
+
+static bool mousePressed = false;
+
 class Board
 {
 public:
@@ -30,11 +43,12 @@ public:
 private:
   std::vector<char> m_Board;
   std::vector<Rectangle> m_PeicesTextures;
-  std::vector<std::pair<char, char>> m_Peices; // The peice type and the peice index (relative to the board)
+  std::vector<Peice> m_Peices; // The peice type and the peice index (relative to the board)
   Texture2D m_TextureAtlas;
   static constexpr float m_SquareWidth = 75;
   static constexpr float m_PeiceWidth = 45.0f;
 
 private:
-  [[nodiscard]] std::vector<std::pair<char, char>> GeneratePeicesFromFen(const std::string_view filePath) noexcept;
+  [[nodiscard]] std::vector<Peice> GeneratePeicesFromFen(const std::string& filePath) noexcept;
+  void GetLegalMoves(Peice& peice) noexcept;
 };
