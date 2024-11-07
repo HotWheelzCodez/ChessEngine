@@ -10,6 +10,8 @@ int main(void)
   InitWindow(windowWidth, windowHeight, "Chess Engine");
   SetTargetFPS(60);
 
+  SetExitKey(KEY_NULL);
+
   int monitor = GetCurrentMonitor();
   float monitorWidth = GetMonitorWidth(monitor);
   float monitorHeight = GetMonitorHeight(monitor);
@@ -27,7 +29,7 @@ int main(void)
     BeginDrawing();
     ClearBackground({ 28, 28, 35, 255 });
 
-    board.UpdateAndRender({ 10, 10 });
+    board.UpdateAndRender({ 0, 0 });
 
     EndDrawing();
   }

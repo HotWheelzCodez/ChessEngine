@@ -1,10 +1,13 @@
 #pragma once /* BOARD_HPP */
 
 #include <iostream>
+#include <cmath>
 #include <vector>
 #include <string>
 
 #include "raylib.h"
+
+static bool mousePressed = false;
 
 enum Peices
 {
@@ -28,9 +31,8 @@ typedef struct Peice
   char boardIndex;
   bool selected;
   bool moved;
+  std::vector<char> legalIndices;
 } Peice;
-
-static bool mousePressed = false;
 
 class Board
 {

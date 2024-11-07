@@ -32,6 +32,10 @@ Board::~Board(void)
 // Will draw the board, the peices, and allow the user and computer to move the peices
 void Board::UpdateAndRender(Vector2 boardPosition) noexcept
 {
+  if (IsKeyPressed(KEY_ESCAPE))
+    for (Peice& peice : m_Peices)
+      peice.selected = false;
+
   mousePressed = false;
   
   float peiceScale = m_SquareWidth/m_PeiceWidth;
@@ -58,9 +62,125 @@ void Board::UpdateAndRender(Vector2 boardPosition) noexcept
 
     char rank = peice.boardIndex/8;
     char file = peice.boardIndex%8;
+    char index = (rank*8)+file;
+
+    // Get the legal moves for the given peice
+    GetLegalMoves(peice);
+
+    
 
     Rectangle dest = { boardPosition.x+(file*m_SquareWidth), boardPosition.y+(rank*m_SquareWidth), m_PeiceWidth*peiceScale, m_PeiceWidth*peiceScale };
+
+    // Check if the user clicked the peice
+    Vector2 mousePos = GetMousePosition();
+    mousePos.x += boardPosition.x;
+    mousePos.y += boardPosition.y;
+   
+    if (mousePos.x > m_SquareWidth*8 || mousePos.y > m_SquareWidth*8)
+    {
+      DrawTexturePro(m_TextureAtlas, m_PeicesTextures[peice.type], dest, { 0, 0 }, 0.0f, WHITE);
+      continue;
+    }
+
+    Color backgroundColor = { 0, 0, 0, 0 };
+    mousePos.x /= m_SquareWidth;
+    mousePos.y /= m_SquareWidth;
+
+    char selectedRank = mousePos.y;
+    char selectedFile = mousePos.x;
+    char selectedIndex = (selectedRank*8)+selectedFile;
+
+    if (selectedIndex == index)
+    {
+      backgroundColor = BEIGE;
+
+      if (IsMouseButtonPressed(MOUSE_BUTTON_LEFT))
+      {
+        mousePressed = true;
+
+        // Unselect all other peices
+        for (Peice& tempPeice : m_Peices)
+          tempPeice.selected = false;
+        peice.selected = true;
+      }
+
+      
+    }
+
+    if (peice.selected)
+    {
+      backgroundColor = { 0, 0, 255, 100 };
+
+      if (!mousePressed && IsMouseButtonPressed(MOUSE_BUTTON_LEFT))
+      {
+        peice.boardIndex = selectedIndex;
+        peice.selected = false;
+        peice.moved = true;
+      }
+
+      // Show the legal moves
+      for (const char& move : peice.legalIndices)
+      {
+        char moveRank = move/8;
+        char moveFile = move%8;
+
+        float x = moveFile*m_SquareWidth;
+        float y = moveRank*m_SquareWidth;
+
+        DrawRectangle(x, y, m_SquareWidth, m_SquareWidth, { 255, 0, 0, 100 });
+      }
+    }
+
+    DrawRectangle(boardPosition.x+(file*m_SquareWidth), boardPosition.y+(rank*m_SquareWidth), m_SquareWidth, m_SquareWidth, backgroundColor);
     DrawTexturePro(m_TextureAtlas, m_PeicesTextures[peice.type], dest, { 0, 0 }, 0.0f, WHITE);
+  }
+}
+
+void Board::GetLegalMoves(Peice& peice) noexcept
+{
+  peice.legalIndices.clear();
+  switch (peice.type)
+  {
+    case WHITE_PAWN:
+      if (peice.moved && peice.boardIndex > 8)
+      {
+        bool valid = true;
+        for (Peice tempPeice : m_Peices)
+        {
+          if (tempPeice.boardIndex == peice.boardIndex-8)
+            valid = false;
+
+          if (tempPeice.boardIndex == peice.boardIndex-9 && tempPeice.type > WHITE_KING)
+            peice.legalIndices.push_back(tempPeice.boardIndex);
+          if (tempPeice.boardIndex == peice.boardIndex-7 && tempPeice.type > WHITE_KING)
+            peice.legalIndices.push_back(tempPeice.boardIndex);
+        }
+
+        if (valid)
+          peice.legalIndices.push_back(peice.boardIndex-8);
+      }
+      else if (peice.boardIndex > 16)
+      {
+        bool valid = true;
+        for (Peice tempPeice : m_Peices)
+        {
+          if (tempPeice.boardIndex == peice.boardIndex-8)
+            valid = false;
+        }
+
+        if (valid)
+        {
+          peice.legalIndices.push_back(peice.boardIndex-8);
+          peice.legalIndices.push_back(peice.boardIndex-16);
+        }
+      }
+
+
+
+      break;
+    case WHITE_BISHOP:
+      
+      break;
   }
 }
 
